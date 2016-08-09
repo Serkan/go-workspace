@@ -36,6 +36,6 @@ func Register(feedType string, matcher Matcher) {
 	if exist {
 		log.Fatalln("There is already a matcher for this type %s", feedType)
 	}
-
+	log.Println("Matcher for " + feedType + " is registering")
 	matchers[feedType] = matcher
 }

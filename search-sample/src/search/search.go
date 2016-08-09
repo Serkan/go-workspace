@@ -22,6 +22,9 @@ func Run(term string) {
 		matcher, exist := matchers[feed.Type]
 		if !exist {
 			matcher = matchers["default"]
+			log.Println("Matcher not found, default will be used")
+		}else{
+			log.Println("Matcher found " + feed.Name)
 		}
 		go func(matcher Matcher, feed *Feed) {
 			Match(matcher, feed, term, results)
@@ -29,8 +32,10 @@ func Run(term string) {
 		}(matcher, feed)
 	}
 
-	waitGroup.Wait()
-	close(results)
+	go func() {
+		waitGroup.Wait()
+		close(results)
+	}()
 
 	Display(results)
 }

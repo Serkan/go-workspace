@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-const dataFile = "../data/data.json"
+const dataFile = "/home/serkan/dev/go-workspace/search-sample/src/data/data.json"
 
 type Feed struct {
 	Name string `json:site`
