@@ -9,3 +9,4 @@ go practices
 
 ==Useful things==
 http://changelog.ca/log/2015/03/09/golang (logging techniques for debugging)
+https://golang.org/doc/effective_go.html (effective go)
