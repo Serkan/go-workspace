@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"log"
+	"reflect"
 )
 
 type Result struct {
@@ -32,10 +33,11 @@ func Display(results chan *Result) {
 }
 
 func Register(feedType string, matcher Matcher) {
-	_, exist := matchers[feedType]
+	log.Println(feedType + " register method called for " + reflect.TypeOf(matcher).String())
+	_, exist := matcherMap[feedType]
 	if exist {
 		log.Fatalln("There is already a matcher for this type %s", feedType)
 	}
 	log.Println("Matcher for " + feedType + " is registering")
-	matchers[feedType] = matcher
+	matcherMap[feedType] = matcher
 }

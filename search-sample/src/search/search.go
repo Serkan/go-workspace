@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var matchers = make(map[string]Matcher)
+var matcherMap = make(map[string]Matcher)
 
 func Run(term string) {
 	feeds, err := GetFeeds()
@@ -19,9 +19,9 @@ func Run(term string) {
 	waitGroup.Add(len(feeds))
 
 	for _, feed := range feeds {
-		matcher, exist := matchers[feed.Type]
+		matcher, exist := matcherMap[feed.Type]
 		if !exist {
-			matcher = matchers["default"]
+			matcher = matcherMap["default"]
 			log.Println("Matcher not found, default will be used")
 		}else{
 			log.Println("Matcher found " + feed.Name)

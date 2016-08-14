@@ -6,11 +6,18 @@ import (
 	"log"
 	"encoding/xml"
 	"regexp"
+	"errors"
 )
 
 type rssMatcher struct{}
 
 func init() {
+	// rss matcher must be registered before the "main" event
+	log.Println("Rss matcher init called")
+	/*
+	we declare a rssMatcher (even it does not contain any field this type "decorated" with matcher interface
+	in this file, and this is equivalent of "class RssMatcher implements Matcher" in java)
+	 */
 	var matcher rssMatcher
 	search.Register("rss", matcher)
 }
@@ -57,31 +64,37 @@ type (
 )
 
 func (m rssMatcher) Search(feed *search.Feed, term string) ([]*search.Result, error) {
-	res, err := http.Get(feed.URI)
+	res, err := http.Get(feed.URI) // make a "GET" HTTP request to given URI
 	if err != nil {
-		log.Fatalf(err)
+		log.Fatal(err.Error())
 	}
-	defer res.Close()
+	// defer calls always called after parent function call
+	defer res.Body.Close() // dont forget the call close (something like InputStream.close())
 
-	if res.Status != 200 {
+	if res.Status != "200" {
 		log.Fatal("RSS matcher can not reach the site " + feed.URI)
 		return nil, nil
 	}
-	document := rssDocument{}
-	xml.NewDecoder(res).Decode(&document)
+	document := rssDocument{} // init a empty XML document structure
+	xml.NewDecoder(res.Body).Decode(&document) // fill this structure by passing its address
 
 	results := []*search.Result{}
 	for _, item := range document.Channel.Item {
-		matched, err := regexp.Match(term, item.Description)
+		// unused variables in return values MUST be disappeared with "_"
+		matched, err := regexp.MatchString(term, item.Description)
 		if err != nil {
 			return nil, nil
 		}
 		if matched {
-			results = append(results, search.Result{
+			results = append(results, &search.Result{// object literals are great to use (we wait it in java as well)
 				Field : "Description",
 				Content: item.Description,
 			})
 		}
 	}
-	return results
+	/*
+	There is no exception mechanism, every error-possible call return with an "error" type variable. So
+	 */
+	err = errors.New("Error occurred while using rss matcher") // create a error structure and return it
+	return results, err
 }
