@@ -3,7 +3,6 @@ package futils
 import (
 	"bytes"
 	"os"
-	"strings"
 )
 
 // ToString Dumps given file content to a string and returns it
@@ -16,8 +15,7 @@ func ToString(fileName string) (content string, err error) {
 	var b bytes.Buffer
 	buffer := make([]byte, 1024)
 	for read, err := f.Read(buffer); read != 0 && err == nil; read, err = f.Read(buffer) {
-		b.Write(buffer)
+		b.Write(bytes.Trim(buffer, "\x00"))
 	}
-	content = strings.Trim(string(buffer), "\x00")
-	return content, err
+	return b.String(), err
 }
