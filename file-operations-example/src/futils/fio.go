@@ -19,3 +19,37 @@ func ToString(fileName string) (content string, err error) {
 	}
 	return b.String(), err
 }
+
+// ContentEquals compares two file's content given by their absolute
+// filepaths and returns true if and only if there is no error occurred
+// and content of two files are identical
+func ContentEquals(f1 string, f2 string) (cmp bool, err error) {
+	ff1, e1 := os.Open(f1)
+	if e1 != nil {
+		return false, e1
+	}
+	ff2, e2 := os.Open(f2)
+	if e2 != nil {
+		return false, e2
+	}
+	defer ff1.Close()
+	defer ff2.Close()
+	b1 := make([]byte, 1024)
+	b2 := make([]byte, 1024)
+	var r1 int
+	var r2 int
+	r1, err = ff1.Read(b1)
+	r2, err = ff2.Read(b2)
+	for r1 != 0 && r2 != 0 && err == nil {
+		if r1 != r2 {
+			return false, nil
+		} else {
+			if !bytes.Equal(b1, b2) {
+				return false, nil
+			}
+		}
+		r1, err = ff1.Read(b1)
+		r2, err = ff2.Read(b2)
+	}
+	return true, err
+}
