@@ -9,9 +9,9 @@ ask for to become committer. All discussions and contributions are most welcomed
 3. Indicate unused or unimported packages by an icon
 
 ##Discussions
-*[Gitter to discuss what to do next](https://gitter.im/gostudylab/Lobby#)
-*[Asana to order and assign task among gophers](https://app.asana.com/0/166591653546069/list)
+- [Gitter to discuss what to do next](https://gitter.im/gostudylab/Lobby#)
+- [Asana to order and assign task among gophers](https://app.asana.com/0/166591653546069/list)
 
 ##Useful things
-*[logging techniques for debugging](http://changelog.ca/log/2015/03/09/golang)
-*[Effective Go](https://golang.org/doc/effective_go.html) 
+- [logging techniques for debugging](http://changelog.ca/log/2015/03/09/golang)
+- [Effective Go](https://golang.org/doc/effective_go.html) 
