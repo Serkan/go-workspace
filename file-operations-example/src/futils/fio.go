@@ -2,7 +2,10 @@ package futils
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"os"
+	"strings"
 )
 
 var readBuffer = int(1024)
@@ -57,4 +60,75 @@ func ContentEquals(f1 string, f2 string) (cmp bool, err error) {
 		return true, nil
 	}
 	return true, err
+}
+
+// CopyFile Copies the file given with first parameter (absolute path of the file)
+// to under the directory given with second parameter.
+func CopyFile(filename string, dirname string) error {
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	name := filename[strings.LastIndex(filename, "/"):]
+	newfile, err := os.Create(dirname + "/" + name)
+	defer newfile.Close()
+	if err != nil {
+		return err
+	}
+	var buffer bytes.Buffer
+	var e error
+	for read, e := buffer.ReadFrom(f); ; read, e = buffer.ReadFrom(f) {
+		if read != 0 && e == nil {
+			buffer.WriteTo(newfile)
+		} else {
+			break
+		}
+	}
+	if e != io.EOF {
+		return e
+	}
+	return nil
+}
+
+// CCopyFile Concurrently copies given file to under given directory, a go routine reads the
+// file in a channel and function do the writing
+func CCopyFile(filename string, dirname string) error {
+	from, err := os.Open(filename)
+	defer from.Close()
+	if err != nil {
+		return nil
+	}
+	name := filename[strings.LastIndex(filename, "/"):]
+	to, err := os.Create(dirname + "/" + name)
+	if err != nil {
+		return nil
+	}
+	pipe := make(chan *[]byte, 10)
+	go func(pipe chan *[]byte, file *os.File) {
+		defer file.Close()
+		// read in a buffer and pass it to channel
+		for {
+			buffer := make([]byte, 1024) // create byte array to read in and send this byte array to channel
+			read, err := file.Read(buffer)
+			if read == 0 || err != nil {
+				break
+			}
+			pipe <- &buffer
+		}
+		if err != nil && err != io.EOF {
+			// signal error
+			pipe <- nil
+		}
+		close(pipe)
+	}(pipe, from)
+	// write to the file from channel
+	for buffer := range pipe {
+		if buffer != nil {
+			to.Write(*buffer)
+		} else {
+			return errors.New("Error while reading/writing")
+		}
+	}
+	return nil
 }
