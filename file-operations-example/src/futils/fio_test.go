@@ -91,3 +91,16 @@ func TestCCopyFile(t *testing.T) {
 }
 
 // TODO write a benchmark to compare concurrent and sequential version of CopyFile
+
+func TestCopyDir(t *testing.T) {
+	abs, _ := filepath.Abs("../../testdata/test_dir")
+	tmpdir, tmperr := ioutil.TempDir("", "dir_copy_test")
+	if tmperr != nil {
+		t.Log(tmperr)
+	}
+	t.Log("Temp directory: " + tmpdir)
+	err := CopyDir(abs, tmpdir)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

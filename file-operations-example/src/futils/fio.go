@@ -33,10 +33,12 @@ func ContentEquals(f1 string, f2 string) (cmp bool, err error) {
 	if e1 != nil {
 		return false, e1
 	}
+
 	ff2, e2 := os.Open(f2)
 	if e2 != nil {
 		return false, e2
 	}
+
 	defer ff1.Close()
 	defer ff2.Close()
 	b1 := make([]byte, readBuffer)
@@ -69,6 +71,7 @@ func CopyFile(filename string, dirname string) error {
 	defer f.Close()
 	if err != nil {
 		return err
+
 	}
 	name := filename[strings.LastIndex(filename, "/"):]
 	newfile, err := os.Create(dirname + "/" + name)
@@ -98,6 +101,7 @@ func CCopyFile(filename string, dirname string) error {
 	defer from.Close()
 	if err != nil {
 		return nil
+
 	}
 	name := filename[strings.LastIndex(filename, "/"):]
 	to, err := os.Create(dirname + "/" + name)
@@ -128,6 +132,23 @@ func CCopyFile(filename string, dirname string) error {
 			to.Write(*buffer)
 		} else {
 			return errors.New("Error while reading/writing")
+		}
+	}
+	return nil
+}
+
+// CopyDir This function copies all content of the specified source directory to destination directory
+func CopyDir(sourcedir string, targetdir string) error {
+	f, err := os.Open(sourcedir)
+	if err != nil {
+		return err
+	}
+	fiSlice, err := f.Readdir(0)
+	for _, fi := range fiSlice {
+		if fi.IsDir() {
+			CopyDir(sourcedir+"/"+fi.Name(), targetdir+"/"+fi.Name())
+		} else {
+			go CopyFile(sourcedir+fi.Name(), targetdir)
 		}
 	}
 	return nil
