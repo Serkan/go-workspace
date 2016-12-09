@@ -139,6 +139,10 @@ func CCopyFile(filename string, dirname string) error {
 
 // CopyDir This function copies all content of the specified source directory to destination directory
 func CopyDir(sourcedir string, targetdir string) error {
+	e := os.MkdirAll(targetdir, 0777)
+	if e != nil {
+		return e
+	}
 	f, err := os.Open(sourcedir)
 	if err != nil {
 		return err
@@ -146,9 +150,15 @@ func CopyDir(sourcedir string, targetdir string) error {
 	fiSlice, err := f.Readdir(0)
 	for _, fi := range fiSlice {
 		if fi.IsDir() {
-			CopyDir(sourcedir+"/"+fi.Name(), targetdir+"/"+fi.Name())
+			err = CopyDir(sourcedir+"/"+fi.Name(), targetdir+"/"+fi.Name())
+			if err != nil {
+				return err
+			}
 		} else {
-			go CopyFile(sourcedir+fi.Name(), targetdir)
+			err = CopyFile(sourcedir+"/"+fi.Name(), targetdir)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
