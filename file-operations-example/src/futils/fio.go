@@ -163,3 +163,49 @@ func CopyDir(sourcedir string, targetdir string) error {
 	}
 	return nil
 }
+
+// WriteToFile writes given byte stream to specified file
+func WriteToFile(reader io.Reader, filename string) error {
+	buffer := make([]byte, readBuffer)
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	for read, e := reader.Read(buffer); read > 0 && e == nil; read, e = reader.Read(buffer) {
+		_, we := f.Write(buffer)
+		if we != nil && we != io.ErrShortWrite {
+			return we
+		}
+	}
+	return nil
+}
+
+// StringReader implementation of io.Reader interface which reads from a given string
+type StringReader struct {
+	data string
+	pos  int
+}
+
+func (t StringReader) Read(p []byte) (n int, err error) {
+	// if pos over data return EOF
+	// else copy from pos to pos + len(p) and set p tp pos + len(p)
+	bufferSize := len(p)
+	dataSize := len(t.data)
+	if t.pos > dataSize {
+		return 0, io.EOF
+	}
+	remaining := dataSize - t.pos
+	byteArray := []byte(t.data)
+	var read int
+	if remaining <= bufferSize {
+		copy(p, byteArray[t.pos:dataSize])
+		read = dataSize - t.pos
+		t.pos = dataSize
+	} else {
+		copy(p, byteArray[t.pos:t.pos+bufferSize-1])
+		t.pos += bufferSize
+		read = bufferSize
+	}
+	return read, nil
+}

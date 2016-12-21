@@ -104,3 +104,29 @@ func TestCopyDir(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestFakeReader(t *testing.T) {
+	reader := StringReader{
+		data: "serkan",
+	}
+	buffer := make([]byte, 10)
+	reader.Read(buffer)
+	str := string(buffer)
+	t.Log("Buffer:" + str)
+}
+
+func TestWriteToFile(t *testing.T) {
+	tmp, err := ioutil.TempFile("", "WriteFileTest")
+	//tmp, err := os.Open("/Users/serkan/test.txt")
+	reader := StringReader{
+		data: "serkan",
+	}
+	reader.data = "serkan"
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = WriteToFile(reader, tmp.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+}

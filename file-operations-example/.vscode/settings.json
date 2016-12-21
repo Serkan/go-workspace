@@ -1,0 +1,4 @@
+// Specifies the GOPATH to use when no environment variable is set.
+  {  
+    "go.gopath":  "/Users/serkan/dev/go-workspace/file-operations-example/"
+  }
