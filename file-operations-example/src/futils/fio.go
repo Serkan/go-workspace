@@ -173,8 +173,8 @@ func WriteToFile(reader io.Reader, filename string) error {
 		return err
 	}
 	for read, e := reader.Read(buffer); read > 0 && e == nil; read, e = reader.Read(buffer) {
-		_, we := f.Write(buffer)
-		if we != nil && we != io.ErrShortWrite {
+		_, we := f.Write(buffer[0:read])
+		if we != nil {
 			return we
 		}
 	}
