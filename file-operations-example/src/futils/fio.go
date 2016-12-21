@@ -167,7 +167,7 @@ func CopyDir(sourcedir string, targetdir string) error {
 // WriteToFile writes given byte stream to specified file
 func WriteToFile(reader io.Reader, filename string) error {
 	buffer := make([]byte, readBuffer)
-	f, err := os.Open(filename)
+	f, err := os.OpenFile(filename, os.O_RDWR, 0600)
 	defer f.Close()
 	if err != nil {
 		return err
@@ -187,24 +187,24 @@ type StringReader struct {
 	pos  int
 }
 
-func (t StringReader) Read(p []byte) (n int, err error) {
+func (readerptr *StringReader) Read(p []byte) (n int, err error) {
 	// if pos over data return EOF
 	// else copy from pos to pos + len(p) and set p tp pos + len(p)
 	bufferSize := len(p)
-	dataSize := len(t.data)
-	if t.pos > dataSize {
+	dataSize := len(readerptr.data)
+	if readerptr.pos >= dataSize {
 		return 0, io.EOF
 	}
-	remaining := dataSize - t.pos
-	byteArray := []byte(t.data)
+	remaining := dataSize - readerptr.pos
+	byteArray := []byte(readerptr.data)
 	var read int
 	if remaining <= bufferSize {
-		copy(p, byteArray[t.pos:dataSize])
-		read = dataSize - t.pos
-		t.pos = dataSize
+		copy(p, byteArray[readerptr.pos:dataSize])
+		read = dataSize - readerptr.pos
+		readerptr.pos = dataSize
 	} else {
-		copy(p, byteArray[t.pos:t.pos+bufferSize-1])
-		t.pos += bufferSize
+		copy(p, byteArray[readerptr.pos:readerptr.pos+bufferSize-1])
+		readerptr.pos += bufferSize
 		read = bufferSize
 	}
 	return read, nil

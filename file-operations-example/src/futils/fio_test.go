@@ -118,7 +118,7 @@ func TestFakeReader(t *testing.T) {
 func TestWriteToFile(t *testing.T) {
 	tmp, err := ioutil.TempFile("", "WriteFileTest")
 	//tmp, err := os.Open("/Users/serkan/test.txt")
-	reader := StringReader{
+	reader := &StringReader{
 		data: "serkan",
 	}
 	reader.data = "serkan"
