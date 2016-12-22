@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -204,9 +205,41 @@ func Grep(pattern string, filename string) (line []string, err error) {
 	return result, nil
 }
 
+// ReplaceAll replaces all occurrences of pattern(regex) in the given file in-place,
+// be careful if your pattern contains a end of line character this function wont work,
+// because all replacements processed line by line, if your pattern exceeds line end,
+// replacement operation will miss this occurrence.
 func ReplaceAll(pattern string, val string, filename string) (changes int, err error) {
-	f, err := os.Open(filename)
-	exp, e1 := regexp.Compile(pattern)
+	tmp, e1 := ioutil.TempFile("", "")
+	defer tmp.Close()
+	if e1 != nil {
+		return 0, e1
+	}
+	f, e2 := os.OpenFile(filename, os.O_RDWR, 0600)
+	defer f.Close()
+	if e2 != nil {
+		return 0, e2
+	}
+	exp, e3 := regexp.Compile(pattern)
+	if e3 != nil {
+		return 0, e3
+	}
+	bufreader := bufio.NewReader(f)
+	bufwriter := bufio.NewWriter(tmp)
+	for line, e4 := bufreader.ReadString('\n'); e4 == nil; line, e4 = bufreader.ReadString('\n') {
+		newString := exp.ReplaceAllString(line, val)
+		if newString != line {
+			changes++
+		}
+		_, e5 := bufwriter.WriteString(newString) // write to temp file
+		if e5 != nil {
+			return changes, e5
+		}
+	}
+	bufwriter.Flush()
+	// replace tmp with original file
+	//os.Rename(tmp.Name(), f.Name())
+	return changes, nil
 }
 
 // StringReader implementation of io.Reader interface which reads from a given string

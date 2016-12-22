@@ -152,3 +152,14 @@ func TestGrep(t *testing.T) {
 		t.Fatal("Assertion failed")
 	}
 }
+
+func TestReplaceAll(t *testing.T) {
+	abs, _ := filepath.Abs("../../testdata/replaceAllTest")
+	changedLines, err := ReplaceAll("Submatch", "REPLACESMENT", abs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changedLines != 3 {
+		t.Fatalf("Changed line count: %d", changedLines)
+	}
+}
