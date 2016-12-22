@@ -126,7 +126,29 @@ func TestWriteToFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = WriteToFile(reader, tmp.Name())
+	content, er := ToString(tmp.Name())
+	if er != nil {
+		t.Fatal(er)
+	}
+	if content != reader.data {
+		t.Fail()
+	}
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestGrep(t *testing.T) {
+	abs, _ := filepath.Abs("../../testdata/grepFile")
+	matches, e1 := Grep("list", abs)
+	if e1 != nil {
+		t.Fatal(e1)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("Wrong number of matches expected 1, actual %d", len(matches))
+	}
+	expected := "To do this, we use Go's ability to turn a list of function arguments into a slice when the function is called. \n"
+	if matches[0] != expected {
+		t.Fatal("Assertion failed")
 	}
 }

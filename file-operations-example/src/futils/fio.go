@@ -1,10 +1,12 @@
 package futils
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -179,6 +181,27 @@ func WriteToFile(reader io.Reader, filename string) error {
 		}
 	}
 	return nil
+}
+
+// Grep It greps a regex pattern from given file
+func Grep(pattern string, filename string) (line []string, err error) {
+	exp, e1 := regexp.Compile(pattern)
+	if e1 != nil {
+		return nil, e1
+	}
+	f, e2 := os.Open(filename)
+	if e2 != nil {
+		return nil, e2
+	}
+	bufreader := bufio.NewReader(f)
+	var result []string
+	for line, e4 := bufreader.ReadString('\n'); e4 == nil; line, e4 = bufreader.ReadString('\n') {
+		match := exp.Find([]byte(line))
+		if match != nil {
+			result = append(result, string(line))
+		}
+	}
+	return result, nil
 }
 
 // StringReader implementation of io.Reader interface which reads from a given string
