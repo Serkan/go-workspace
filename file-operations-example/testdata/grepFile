@@ -1,0 +1,3 @@
+With the robust Extend function as a guide we can write an even nicer function that lets us extend the slice by multiple elements.
+To do this, we use Go's ability to turn a list of function arguments into a slice when the function is called. 
+That is, we use Go's variadic function facility.

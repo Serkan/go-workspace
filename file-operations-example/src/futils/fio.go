@@ -204,6 +204,11 @@ func Grep(pattern string, filename string) (line []string, err error) {
 	return result, nil
 }
 
+func ReplaceAll(pattern string, val string, filename string) (changes int, err error) {
+	f, err := os.Open(filename)
+	exp, e1 := regexp.Compile(pattern)
+}
+
 // StringReader implementation of io.Reader interface which reads from a given string
 type StringReader struct {
 	data string
