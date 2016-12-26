@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"net"
 	"net/url"
@@ -18,6 +19,7 @@ type WebResource struct {
 	pattern     *regexp.Regexp
 	location    string
 	contentType string
+	errorFlag   bool
 }
 
 // ResourceServer anything can be written to io.Writer comes from http connection
@@ -106,24 +108,25 @@ func convertToContentType(location string) string {
 func (srv *Server) handeConnection(con net.Conn) {
 	req := parse(con)
 	res := req.requestedResource
-	webres := srv.convertToWebResource(res)
+	webres := srv.lookupWebResource(res)
 	webres.serve(con)
 }
 
 func (resource WebResource) serve(writer io.Writer) (err error) {
-	// open resource file
-	f, err := os.Open(resource.location)
-	if err != nil { // TODO remove from here, this is an server error case not HTTP 404 maybe HTTP 5XX
+	if resource.errorFlag { // TODO remove from here, this is an server error case not HTTP 404 maybe HTTP 5XX
 		writeLine(writer, "HTTP/1.1 404 NOT FOUND")
 		writeLine(writer, "<h1>404 NOT FOUND</h1>")
 		return
 	}
+	// open resource file
+	f, err := os.Open(resource.location)
+	defer f.Close()
 	info, _ := f.Stat()
 	// preapre response headers
 	writeLine(writer, "HTTP/1.1 200 OK")
 	writeHeader(writer, "Content-Type", resource.contentType)
 	writeHeader(writer, "Accept-Ranges", "bytes")
-	writeHeader(writer, "Content-Length", string(info.Size()))
+	writeHeader(writer, "Content-Length", strconv.FormatInt(info.Size(), 10))
 	writeHeader(writer, "Date", currentDateForHeader())
 	writeLine(writer, "")
 	// io.Copy to writer
@@ -131,14 +134,19 @@ func (resource WebResource) serve(writer io.Writer) (err error) {
 	return nil
 }
 
-func (srv *Server) convertToWebResource(resourcename string) (res *WebResource) {
+func (srv *Server) lookupWebResource(resourcename string) (res *WebResource) {
 	// lookup from resource map for pattern and return web resource
 	for _, wr := range srv.resourceMapping {
 		if wr.pattern.Match([]byte(resourcename)) {
 			return wr
 		}
 	}
-	return nil // TODO change to 404 not found page
+	abs, _ := filepath.Abs("../../404.html")
+	return &WebResource{
+		location:    abs,
+		contentType: "text/html",
+		errorFlag:   true,
+	}
 }
 
 func parse(reader io.Reader) (req *Request) {
@@ -182,6 +190,23 @@ func writeHeader(writer io.Writer, headername string, headervalue string) {
 func currentDateForHeader() string {
 	t := time.Now()
 	// Date: <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-	return t.Weekday().String() + "," + string(t.Day()) + " " + t.Month().String() + " " + string(t.Year()) + " " +
-		string(t.Hour()) + ":" + string(t.Minute()) + ":" + string(t.Second()) + " " + "GMT"
+	return t.Weekday().String() + "," + strconv.Itoa(t.Day()) + " " + t.Month().String() + " " + strconv.Itoa(t.Year()) + " " +
+		strconv.Itoa(t.Hour()) + ":" + strconv.Itoa(t.Minute()) + ":" + strconv.Itoa(t.Second()) + " " + "GMT"
+}
+
+// StringWriter an implementation of io.Writer, it hold its buffer in-memory
+type StringWriter struct {
+	buffer bytes.Buffer
+}
+
+func (strwriter *StringWriter) Write(b []byte) (n int, err error) {
+	written, err := strwriter.buffer.WriteString(string(b))
+	if err != nil {
+		return 0, err
+	}
+	return written, nil
+}
+
+func (strwriter StringWriter) String() string {
+	return strwriter.buffer.String()
 }
