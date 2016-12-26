@@ -1,0 +1,1 @@
+<h1>METHOD NOT ALLOWED</h1>
